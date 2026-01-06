@@ -1,0 +1,268 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  REGULAR
+  ADMIN
+  PRIORITY
+  SUPER_ADMIN
+}
+
+model User {
+  id                      String         @id @default(cuid())
+  email                   String         @unique
+  password                String
+  name                    String?
+  role                    UserRole       @default(REGULAR)
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  tokens                  Token[]
+  pods                    Pod[]          @relation("CreatedBy")
+  logIssues               LogIssue[]     @relation("LogIssueCreatedBy")
+  notifications           Notification[] @relation("UserNotifications")
+  createdNotifications    Notification[] @relation("NotificationCreatedBy")
+  notificationsCreatedFor Notification[] @relation("NotificationCreatedFor")
+  podStatusHistoryChanges PodStatusHistory[] @relation("PodStatusHistoryChangedBy")
+  // Removed relation to Transaction
+}
+
+model Token {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model Pod {
+  id                             String    @id @default(cuid())
+  pod                            String // No unique constraint on pod field alone
+  internalPodId                  String
+  type                           String
+  assignedEngineer               String
+  assignedEngineerDate           DateTime? // New field to track when engineer was assigned
+  status                         String
+  subStatus                      String
+  subStatusLastChanged           DateTime? // New field to track when sub-status last changed
+  org                            String
+  priority                       Int       @default(9999) // Default to 9999, lower numbers have higher priority
+  creationTimestamp              DateTime?
+  creationTimestampIsNA          Boolean   @default(false)
+  slaCalculatedNbd               DateTime?
+  slaCalculatedNbdIsNA           Boolean   @default(false)
+  podWorkableDate                DateTime?
+  podWorkableDateIsNA            Boolean   @default(false)
+  totalElapsedCycleTime          Float
+  workableCycleTime              Float
+  timeInCurrentStatus            String?
+  clli                           String
+  city                           String
+  state                          String
+  routerType                     String
+  router1                        String
+  router2                        String
+  podProgramType                 String
+  tenantName                     String
+  currentLepVersion              String
+  lepVersionToBeApplied          String
+  podType                        String
+  podTypeOriginal                String @default("")
+  special                        Boolean
+  lepAssessment                  DateTime?
+  lepAssessmentIsNA              Boolean   @default(false)
+  dlpTemplateUpdates             DateTime?
+  dlpTemplateUpdatesIsNA         Boolean   @default(false)
+  ipAcquisition                  DateTime?
+  ipAcquisitionIsNA              Boolean   @default(false)
+  ipAllocation                   DateTime?
+  ipAllocationIsNA               Boolean   @default(false)
+  conversionFileUpdate           DateTime?
+  conversionFileUpdateIsNA       Boolean   @default(false)
+  conversionFileValidation       DateTime?
+  conversionFileValidationIsNA   Boolean   @default(false)
+  pepGeneration                  DateTime?
+  pepGenerationIsNA              Boolean   @default(false)
+  connectitTdsCreation           DateTime?
+  connectitTdsCreationIsNA       Boolean   @default(false)
+  connectitPreloadCreation       DateTime?
+  connectitPreloadCreationIsNA   Boolean   @default(false)
+  checklistCreation              DateTime?
+  checklistCreationIsNA          Boolean   @default(false)
+  vmDeleteList                   DateTime?
+  vmDeleteListIsNA               Boolean   @default(false)
+  vmDeletesComplete              DateTime?
+  vmDeletesCompleteIsNA          Boolean   @default(false)
+  lcmNetworkDeletes              DateTime?
+  lcmNetworkDeletesIsNA          Boolean   @default(false)
+  lcmNetworkDeletesTicket        String? // New field for ticket number
+  macdCreation                   DateTime?
+  macdCreationIsNA               Boolean   @default(false)
+  atsMacdApproval                DateTime?
+  atsMacdApprovalIsNA            Boolean   @default(false)
+  lcmNetworkDeleteCompletion     DateTime?
+  lcmNetworkDeleteCompletionIsNA Boolean   @default(false)
+  dlpUploads                     DateTime?
+  dlpUploadsIsNA                 Boolean   @default(false)
+  cdmLoad                        DateTime?
+  cdmLoadIsNA                    Boolean   @default(false)
+  inServiceVavAudit              DateTime?
+  inServiceVavAuditIsNA          Boolean   @default(false)
+  globalCvaasAudit               DateTime?
+  globalCvaasAuditIsNA           Boolean   @default(false)
+  dns                            DateTime?
+  dnsIsNA                        Boolean   @default(false)
+  dnsTicketAddsDeletes           String? // DNS Adds/Deletes ticket number
+  dnsTicketChanges               String? // DNS Changes ticket number
+  lcmAddTicket                   DateTime?
+  lcmAddTicketIsNA               Boolean   @default(false)
+  lcmAddTicketNumber             String? // New field for ticket number
+  preloadTicketSubmitted         DateTime?
+  preloadTicketSubmittedIsNA     Boolean   @default(false)
+  preloadTicketNumber1           String? // First preload ticket number
+  preloadTicketNumber2           String? // Second preload ticket number
+  preloadTicketNumber3           String? // Third preload ticket number
+  ixcRoamingSmop                 DateTime?
+  ixcRoamingSmopIsNA             Boolean   @default(false)
+  ixcRoamingSmopTicket           String? // New field for ticket number
+  gtmVvmSmop                     DateTime?
+  gtmVvmSmopIsNA                 Boolean   @default(false)
+  gtmVvmSmopTicket               String? // New field for ticket number
+  otherRouting                   DateTime?
+  otherRoutingIsNA               Boolean   @default(false)
+  publishPep                     DateTime?
+  publishPepIsNA                 Boolean   @default(false)
+  ticketNotificationEmail        DateTime?
+  ticketNotificationEmailIsNA    Boolean   @default(false)
+  myloginsRequest                DateTime?
+  myloginsRequestIsNA            Boolean   @default(false)
+  lcmComplete                    DateTime?
+  lcmCompleteIsNA                Boolean   @default(false)
+  preloadComplete                DateTime?
+  preloadCompleteIsNA            Boolean   @default(false)
+  completedDate                  DateTime?
+  completedDateIsNA              Boolean   @default(false)
+  notes                          String?   // New field for notes
+  projectManagers                String?   // New field for project managers
+  linkToActiveTds                String?   // New field for link to active TDS
+  linkToActivePreloads           String?   // New field for link to active preloads
+  isHistory                      Boolean   @default(false)
+  isDeleted                      Boolean   @default(false) // New field for soft delete
+  shouldDisplay                  Boolean   @default(true) // New field to control visibility
+  createdById                    String?
+  createdBy                      User?     @relation("CreatedBy", fields: [createdById], references: [id])
+  createdAt                      DateTime  @default(now())
+  updatedAt                      DateTime  @updatedAt
+  statusHistory                  PodStatusHistory[] @relation("PodStatusHistory")
+  // Removed relation to Transaction
+}
+
+model LogIssue {
+  id                     String         @id @default(cuid())
+  pod                    String
+  dateOpened             DateTime
+  dateOpenedIsNA         Boolean        @default(false)
+  lepVersionBeingApplied String
+  status                 String
+  rootCauseOwner         String
+  resolutionOwner        String[]       @default([])
+  description            String
+  notes                  String
+  isDeleted              Boolean        @default(false) // New field for soft delete
+  createdById            String?
+  createdBy              User?          @relation("LogIssueCreatedBy", fields: [createdById], references: [id])
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  notifications          Notification[]
+  // Removed relation to Transaction
+}
+
+model AutofillPod {
+  id                     String   @id @default(cuid())
+  pod                    String   @unique
+  internalPodId          String?
+  type                   String?
+  assignedEngineer       String?
+  status                 String?
+  subStatus              String?
+  org                    String?
+  city                   String?
+  state                  String?
+  clli                   String?
+  router1                String?
+  router2                String?
+  routerType             String?
+  podProgramType         String?
+  tenantName             String?
+  currentLepVersion      String?
+  lepVersionToBeApplied  String?
+  podType                String?
+  podTypeOriginal        String?
+  special                Boolean?
+  notes                  String?
+  projectManagers        String?
+  linkToActiveTds        String?
+  linkToActivePreloads   String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  entityType  String // "Pod" or "LogIssue" or "User"
+  entityId    String // ID of the related entity
+  action      String // "create", "update", "delete", "move_to_history", "move_to_active"
+  details     String // JSON string of changes
+  podId       String? // Reference to Pod without relation
+  logIssueId  String? // Reference to LogIssue without relation
+  createdById String // Reference to User without relation
+  createdAt   DateTime @default(now())
+
+  // Removed all relations
+}
+
+model Notification {
+  id           String    @id @default(cuid())
+  userId       String
+  message      String
+  read         Boolean   @default(false)
+  podId        String?
+  logIssueId   String?
+  logIssue     LogIssue? @relation(fields: [logIssueId], references: [id])
+  createdById  String?
+  createdBy    User?     @relation("NotificationCreatedBy", fields: [createdById], references: [id])
+  createdForId String?
+  createdFor   User?     @relation("NotificationCreatedFor", fields: [createdForId], references: [id])
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  user User @relation("UserNotifications", fields: [userId], references: [id])
+
+  @@index([userId, read])
+}
+
+model PodStatusHistory {
+  id          String   @id @default(cuid())
+  podId       String   // Reference to Pod.id (not pod field)
+  pod         Pod      @relation("PodStatusHistory", fields: [podId], references: [id], onDelete: Cascade)
+  status      String?  // Status change (null if only substatus changed)
+  subStatus   String?  // SubStatus change (null if only status changed)
+  previousStatus    String?  // Previous status for tracking transitions
+  previousSubStatus String?  // Previous substatus for tracking transitions
+  changedById String?  // User who made the change
+  changedBy   User?    @relation("PodStatusHistoryChangedBy", fields: [changedById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([podId])
+  @@index([changedById])
+  @@index([createdAt])
+}
